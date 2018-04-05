@@ -173,6 +173,37 @@ This sumarizes all the knowledge that we have accquired regarding A/B testing.
 
 \subsection{Improvement}
 
+\section{Bayesian Workflow}
+
+The Bayesian workflow to model a set of data should consist of the following steps~\cite{Gabry2018}.
+
+\begin{enumerate}
+    \item Exploratory data analysis. Go deeper than simply plotting the data, look for hidden patterns that
+      may biais a naive model.
+    \item Choose a set of models.
+    \item Check the models using fake data. In particular, judge of the adequacy of the priors using prior
+      predictive checks (predicting all possible data points).
+    \item Check the computation. Go beyond trace plots.
+    \item Posterior predictive checks
+    \item Comparison between the different models
+\end{enumerate}
+
+  \subsection{Check the model}
+
+Prior predictive check.~\cite{Betancourt2018}
+  
+  \subsection{Computation diagnostics}
+
+\begin{itemize}
+    \item Trace plot
+    \item $\hat{R}$ statistic
+    \item Other things for HMC~\cite{Betancourt2017}
+\end{itemize}
+
+
+  \subsection{Posterior predictive checks}
+
+
 \section{Cost function}
 
 
@@ -193,6 +224,32 @@ This sumarizes all the knowledge that we have accquired regarding A/B testing.
 \section{Duration}
 \subsubsection{Examples}
 
+\section{Impact of new features on retention}
+
+The impact of new features on retention is not something that is obvious to
+measure. When one performs a naive A/B test, where one variant contains the
+feature and the other one doesn't, the question that is being answered when
+comparing the retention of the two cohorts is:
+
+\begin{quotation}
+	What is the average difference in terms of retention between users who
+	can potentially see and use the feature and those who can't.
+\end{quotation}
+
+However, this is not the question we are interested in. Instead, what we would
+like to know is:
+
+\begin{quotation}
+	1. Of all the people who have seen the feature, how many have used it?\\
+	2. Does knowing that the feature exists influence the retention?\\
+          3. Does using the feature influence the retention?
+\end{quotation}
+
+Ultimately, only question (2) requires an A/B test to be answered (unless,
+arguably, when the feature is hidden and it is possible to use the application
+without seeing it).
+
+For individuals in the cohort that cannot access the feature, te
 
 \chapter{The future}
 \section{Multi-armed bandits}
@@ -202,6 +259,18 @@ This sumarizes all the knowledge that we have accquired regarding A/B testing.
 Can we reach statistical significance earlier?
 
 https://erikbern.com/2017/12/12/learning-from-users-faster-using-machine-learning.html
+
+\section{Just for fun: a short review of inference methods}
+
+\subsection{Variational Inference}
+
+\section{Monte Carlo Sampling}
+
+
+Hamiltonian Monte Carlo~\cite{Betancourt2017}.
+
+Riemannian Monte Carlo~\cite{Betancourt2013}
+
 
 %%
 % Start the main matter (normal chapters)

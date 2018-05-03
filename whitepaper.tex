@@ -157,7 +157,29 @@
 
 This sumarizes all the knowledge that we have accquired regarding A/B testing.
 
+\chapter{Why being Bayesian?}
+\label{chap:why_bayes}
 
+Bayesian statistics are not self-evident in the field of A/B testing. Quite the contrary: for a very long
+time, virtually all companies relied to frequentist statistics and p-value in order to draw conclusions from
+their tests (AirBnB, Stakoverflow...). There's been a trend recently to go towards Bayesian methods to
+interpret results (ABTasty, VWO...). Why?
+
+The question is worth answering, as frequentist statistics are considered by most to be "easier" to use, while
+Bayesian methods requires one to learn a new framework that is rarely taught at school. Here are a few
+reaseons, most gathered from~\cite{Murphy2012}:
+
+
+\begin{itemize}
+  \item[\textbf{Confidence intervals are weird.}] Unlike Bayesian who define credible intervals based on the
+    posterior distribution (thus on data only), the confidence interval is derived from the sampling
+    distribution of the estimator. We condition on what is unknown, the parameter $\theta$, and average over
+    future hypothetical data $\tilde{\mathcal{D}}$. This is counter-intuitive and can lead to very
+    pathological situations. They can't be trusted.
+  \item[\textbf{p-values, anyone?}]
+  \item[\textbf{Likelihood principle}]
+  \item[\textbf{It doesn't answer the interesting questions}]
+\end{itemize}
 
 \chapter{The Bayesian way}
 \label{chap:Bayes}
@@ -204,7 +226,61 @@ Prior predictive check.~\cite{Betancourt2018}
   \subsection{Posterior predictive checks}
 
 
-\section{Cost function}
+\section{When to stop the experiment?}
+
+Experiment can, in theory, run forever. Often, we stop them for pratical reasons (we need the result now), or
+because we have seen something that seemed significant. Both can be valuable reasons, as we will see, but the
+ideas somewhat need to be normalized an integrated into a decision framework.
+
+The idea of stopping experiments early, when there is a 'statistically significant' result is not new, and is
+often justified on the basis of it being a good tradeoff between statistical accuracy and speed in decision.
+Yet, this leads to several pathological cases, and should be studied more deeply.
+
+Now, assume that we do not want to fall into the trap of 'early peaking' and choose a stopping rule that only
+depends on the data that have been gathered so far. How do we choose when to stop? Does it have to be
+arbitrary? As we will see, although you always have to draw a line in the sand, you can build a framework so
+that the choice you have to make does not seem very arbitrary, and matches the heuristics we usually use ("Hey,
+we need to put this in production by next week").
+
+Here is how a discussion between data and product people usually goes:
+
+"Hey, did you have time to look at the results on the feature we rolled out last week? We'd really like to
+push it in prod, or take it down for the next feature"
+
+"I did. The results are promising, but not statistically significant yet. We need to wait a little longer."
+
+"Ok, promising is good enough to me. We really don't have time to wait for this. Close it."
+
+Two things went wrong in this discussion:
+
+\begin{itemize}
+  \item \textit{Never} tell anyone (not even me) about the current trend on the metric, unless the decision
+    tree has decided to stop. Before it is finished, it is not finished.
+  \item Finishing a test before reaching significance does not make sense, as we will see.
+\end{itemize}
+
+Also, notice all the assumptions that are not spelled out:
+
+\begin{itemize}
+  \item There \textit{is} a constraint on the time an experiment can run, and we are not always ready to trade
+    time for more accuracy. But how much are we ready to trade?
+  \item There is a threshold of significance after which we feel we can stop the experiment. What is that
+      threshold?
+\end{itemize}
+
+Clearly, there is a need to formalize and standardize the decision process. We'll see that this formalization
+is not so much of a constraint---several parameters can be adjusted on an experiment basis---but it helps with
+having a consistant decision protocol. Something that can be discussed in very specific terms.
+
+
+    \subsection{How bayesians make decisions}%
+    \label{sub:how_bayesians_make_decisions}
+
+- Loss
+- Bayesian risk
+
+    \subsection{The link with reinforcement learning}%
+    \label{sub:the_link_with_reinforcement_learning}
 
 
 

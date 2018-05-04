@@ -24,6 +24,9 @@
 % For nicely typeset tabular material
 \usepackage{booktabs}
 
+% for math
+\usepackage{amsmath}
+
 %%
 % For graphics / images
 \usepackage{graphicx}
@@ -286,21 +289,109 @@ having a consistant decision protocol. Something that can be discussed in very s
 
 \chapter{Models}
 \label{chap:models}
+  
+  \section{Subscription retention and lifetime value}%
+  \label{sec:churn_of_subscription_and_lifetime_value}
 
-\section{Conversion}
 
-\subsubsection{Examples}
+    \subsection{Introduction: why it matters}%
+    \label{sub:introduction_why_it_matters}
+  
+  
+The churn of subscribers is defined in the following way. Let us note $N_0$ the number of users who subscribed
+to a paid plan. We can measure the number of people $N_t$ who renewed their subscription at least until time
+$t$. Taking all users of a same cohort, this gives us a list of integers:
 
-\section{Counts}
-\subsubsection{Examples}
+\begin{equation}
+  \left[N_0, \dots, N_T \right]
+\end{equation}
 
-\subsection{Raw}
-\subsubsection{Examples}
+where $T$ is the last observable time. Usually, we define a cohort as all the users who subscribed the same
+month. Indeed, if we mix these cohorts we end with \textit{censored data}: some users who registered at time $0$
+won't be present at time $T$ not because they churned, but because their subscription is not old enough. Once
+should be aware of censored data, since they can introduce an important biais in the analysis.
 
-\section{Duration}
-\subsubsection{Examples}
+Our goal in this section is to derive a model that describes the above list as well as possible. Why do we
+care about modeling the churn? Mainly two reasons:
 
-\section{Impact of new features on retention}
+\begin{itemize}
+  \item[\textbf{Financial forecasting}] A churn model would allow us to \textit{make predictions} about churn
+    values in the future. That way, we are able to predict our future revenue. The Bayesian approach is
+    crucial here as the model would allow to compute the \textit{uncertainty} on the future revenue. Point 
+    predictions could be deadly here.
+  \item[\textbf{Lifetime value}] Because we would be able to predict the number of users still paying after an
+    arbitrary amount of time, we would be able to compute the lifetime value of subscribers in each plan. That
+    way, we could adapt our marketing strategy towards the plans with the highest lifetime value. Also, this
+    would let us know what is largest amount of money we can pay to acquire a paying user.
+\end{itemize}
+
+    \subsection{The model}%
+    \label{sub:the_model}
+ 
+We will use a generative model of the churn process. We assume that each subscriber $i$ has a probability
+$\theta_i$ to cancel their subscription at any time. This probability is constant over time. This may seem odd
+to marketers who tend to think that retention increases over time. We will see this observed increased can
+simply be interpreted as a sorting effect.
+We further assume that all the $\theta_i$ are drawn from the same Beta distribution with parameters $\alpha$
+and $\beta$
+
+\begin{equation}
+  \theta_i \sim Beta(\alpha, \beta) \quad \forall i
+\end{equation}
+
+The parameters $\alpha$ and $\beta$ are descriptors of the application as a whole. We choose a Beta
+distribution because it is a versatile distribution over $\left[0,1\right]$ that can take a variety of
+different shapes as the values of $\alpha$ and $\beta$ vary.
+
+We need to set a prior on $\alpha$ and $\beta$. We choose the weakly informative prior define by Gelman et al.
+in~\cite{Gelman2014}:
+
+\begin{equation}
+  \alpha, \beta \sim \frac{1}{\left(\alpha+\beta\right)^{5/2}}
+\end{equation}
+
+In order to predict $N_t$, the number of users left at time $t$ we see to compute the survival probability
+$S_i(t)$, the probability that any user $i$ is still present at time $t$. This probability is simply:
+
+\begin{equation}
+  S_i(t) = \left(1-\theta_i\right)^{t}
+\end{equation}
+
+The average number of users still present at time $t$ is thus given by:
+
+\begin{equation}
+  N_t = \sum_{i=1}^{N} S_i(t)
+\end{equation}
+
+    \subsection{Inference}%
+    \label{sub:inference}
+
+The numbers $N_t$ are observed, and we are interested in infering the values of the parameters $\vec{\theta} =
+\left\{\theta_i\right\}$, $\alpha$ and $\beta$. According to Bayes' theorem, for a single point in time:
+
+\begin{align*}
+  P\left(\vec{\theta}, \alpha, \beta | N_t \right) &\propto 
+  P\left(N_t | \vec{\theta}, \alpha, \beta \right) P(\vec{\theta} | \alpha, \beta)
+  P(\alpha, \beta)\\
+  & \propto \left[ \prod_{i=1}^{N} P\left(N_t | \theta_i, \alpha, \beta \right) P(\theta_i | \alpha, \beta)
+  \right]
+  P(\alpha, \beta)\\
+\end{align*}
+
+The $\theta_i$ are conditionally independant on $\alpha$ and $\beta$ so we can expand the likelihood and the
+prior on $\theta$ into a product of terms that only depend on $\theta_i$. Here, the values of $\theta_i$ are
+of little interest to us so we can integrate over all $\theta_i$:
+
+\begin{equation}
+  P(\alpha, \beta | N_t) \propto \left[ \prod_{i=1}^N \left(\int_0^1  P\left(N_t | \theta_i, \alpha, \beta \right)
+  P(\theta_i | \alpha, \beta) \mathrm{d}\theta_i \right)
+  \right] P(\alpha, \beta)
+\end{equation}
+  
+  \section{Retention and stickiness}% \label{sec:retention_and_stickiness}
+  
+  
+  \section{Impact of new features on retention}
 
 The impact of new features on retention is not something that is obvious to
 measure. When one performs a naive A/B test, where one variant contains the

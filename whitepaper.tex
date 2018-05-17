@@ -245,7 +245,8 @@ arbitrary? As we will see, although you always have to draw a line in the sand, 
 that the choice you have to make does not seem very arbitrary, and matches the heuristics we usually use ("Hey,
 we need to put this in production by next week").
 
-Here is how a discussion between data and product people usually goes:
+
+Here is how a discussion between data and product people usually goes:\\
 
 "Hey, did you have time to look at the results on the feature we rolled out last week? We'd really like to
 push it in prod, or take it down for the next feature"
@@ -258,7 +259,8 @@ Two things went wrong in this discussion:
 
 \begin{itemize}
   \item \textit{Never} tell anyone (not even me) about the current trend on the metric, unless the decision
-    tree has decided to stop. Before it is finished, it is not finished.
+    tree has decided to stop. Before the experiment is finished, the results have no meaning! (at least report
+    the loss you were ready to accept by choosing the variant you did).
   \item Finishing a test before reaching significance does not make sense, as we will see.
 \end{itemize}
 
@@ -274,6 +276,28 @@ Also, notice all the assumptions that are not spelled out:
 Clearly, there is a need to formalize and standardize the decision process. We'll see that this formalization
 is not so much of a constraint---several parameters can be adjusted on an experiment basis---but it helps with
 having a consistant decision protocol. Something that can be discussed in very specific terms.
+
+
+We need to do a \textit{preposterior} analysis of the experiment design to minimize the overall cost. The
+overall cost is the sum of the decision loss and the cost to run the experiment.
+
+A sequential decision procedure is noted:
+
+\begin{equation}
+  \mathbf{d} = \left(\mathbf{\tau}, \mathbf{\delta}\right)
+\end{equation}
+
+where $\mathbf{\tau}_i$ is the probability to stop the experiment at stage $i$ and $\mathbf{\delta}_i$ is the
+decision that has to be taken if the stop the experiment at stage $i$. It's often easier to speak in term of
+\textit{stopping time} $N$:
+
+\begin{equation}
+  N = min\left\{n\geq0 | \mathbf{\tau}_n = 1\right\}
+\end{equation}
+
+The idea is that one should compare at every step the posterior Bayes risk of making a decision with the
+"expected" Bayes risk that will be obtained if more observations are taken.
+
 
 
     \subsection{How bayesians make decisions}%
@@ -350,21 +374,33 @@ in~\cite{Gelman2014}:
   \alpha, \beta \sim \frac{1}{\left(\alpha+\beta\right)^{5/2}}
 \end{equation}
 
-In order to predict $N_t$, the number of users left at time $t$ we see to compute the survival probability
-$S_i(t)$, the probability that any user $i$ is still present at time $t$. This probability is simply:
+
+The number of users still present at time $t$ is the random variable $n_t$ defined as:
 
 \begin{equation}
-  S_i(t) = \left(1-\theta_i\right)^{t}
+  n_t = \sum_{i=1}^N s_{it}
 \end{equation}
 
-The average number of users still present at time $t$ is thus given by:
+where $s_{it}$ is the random variable equal to one when user $i$ is present at time $t$, and 0 otherwise. It
+follows a shifted geometric distribution:
 
-\begin{equation}
-  N_t = \sum_{i=1}^{N} S_i(t)
-\end{equation}
+\begin{align*}
+  P(s_{it}=1) &\sim \left(1-\theta_i\right)^t\\
+  P(s_{it}=0) &\sim \sum_{\tau=1}^t \theta_i \left(1-\theta_i\right)^{\tau-1}
+\end{align*}
 
     \subsection{Inference}%
     \label{sub:inference}
+
+Computing for all times t in one go is complicated so we instead progress recursively:
+
+\begin{equation}
+  P(n_0 = N_0 | \theta, \alpha, \beta) = \left(1-\theta_i\right)
+\end{equation}
+
+Since the random variables
+
+
 
 The numbers $N_t$ are observed, and we are interested in infering the values of the parameters $\vec{\theta} =
 \left\{\theta_i\right\}$, $\alpha$ and $\beta$. According to Bayes' theorem, for a single point in time:
@@ -383,10 +419,33 @@ prior on $\theta$ into a product of terms that only depend on $\theta_i$. Here, 
 of little interest to us so we can integrate over all $\theta_i$:
 
 \begin{equation}
-  P(\alpha, \beta | N_t) \propto \left[ \prod_{i=1}^N \left(\int_0^1  P\left(N_t | \theta_i, \alpha, \beta \right)
+  P(\alpha, \beta | N_t) \propto \left[ \prod_{i=1}^N \left(\int_0^1  S_i(t)
   P(\theta_i | \alpha, \beta) \mathrm{d}\theta_i \right)
   \right] P(\alpha, \beta)
 \end{equation}
+
+The integrals over $\theta_i$ are:
+
+\begin{align*}
+  I_i &= \int_0^1 \left(1-\theta_i\right)^t \frac{\theta_i^{\alpha-1} \left(1-\theta_i\right)^{\beta-1}}{B(\alpha,
+  \beta)} \mathrm{d} \theta_i\\
+  &= \frac{B(\alpha, \beta+t)}{B(\alpha, \beta)}
+\end{align*}
+
+Thus we have:
+
+\begin{equation}
+  P\left(\alpha, \beta | N_t\right) = \left[S_t(\alpha, \beta)\right]^N P(\alpha, \beta)
+\end{equation}
+
+  \subsection{Prediction}%
+  \label{sub:prediction}
+  
+  \subsection{Lifetime Value}%
+  \label{sub:lifetime_value}
+  
+ 
+
   
   \section{Retention and stickiness}% \label{sec:retention_and_stickiness}
   
@@ -407,9 +466,9 @@ However, this is not the question we are interested in. Instead, what we would
 like to know is:
 
 \begin{quotation}
-	1. Of all the people who have seen the feature, how many have used it?\\
-	2. Does knowing that the feature exists influence the retention?\\
-          3. Does using the feature influence the retention?
+    1. Of all the people who have seen the feature, how many have used it?\\
+    2. Does knowing that the feature exists influence the retention?\\
+    3. Does using the feature influence the retention?
 \end{quotation}
 
 Ultimately, only question (2) requires an A/B test to be answered (unless,

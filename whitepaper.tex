@@ -375,14 +375,14 @@ in~\cite{Gelman2014}:
 \end{equation}
 
 
-The number of users still present at time $t$ is the random variable $n_t$ defined as:
+The number $n_t$ of users at an instant $t$ is given by
 
 \begin{equation}
   n_t = \sum_{i=1}^N s_{it}
 \end{equation}
 
-where $s_{it}$ is the random variable equal to one when user $i$ is present at time $t$, and 0 otherwise. It
-follows a shifted geometric distribution:
+where $s_{it}$ is the random variable equal to one when user $i$ is present at time $t$, and $0$ otherwise. It
+is distributed according to:
 
 \begin{align*}
   P(s_{it}=1) &\sim \left(1-\theta_i\right)^t\\
@@ -392,60 +392,74 @@ follows a shifted geometric distribution:
     \subsection{Inference}%
     \label{sub:inference}
 
-Computing for all times t in one go is complicated so we instead progress recursively:
+Computing for all times $t$ in one go is complicated so we instead progress recursively. $s_{i1}$ is given by an
+inverse Bernoulli distribution of parameter $\theta_i$. Since that, in absence of any further information, the
+users are exchangeable, we have according to deFinetti's representation theorem:
 
 \begin{equation}
-  P(n_0 = N_0 | \theta, \alpha, \beta) = \left(1-\theta_i\right)
+  P(n_1 = N_1 | \vec{\theta}, \alpha, \beta) = \int_0^1 \theta_i^{N-N_1} \left(1-\theta_i\right)^{N_1}
+  P(\theta_i|\alpha, \beta)\: \mathrm{d}\theta_i
 \end{equation}
 
-Since the random variables
+So, filling in the expression for $\theta_i$ conditional probability:
 
+\begin{align}
+  P(n_1=N_1) &= \int_0^1 \frac{\theta_i^{N-N_1+\alpha-1}\left(1-\theta_i\right)^{N_1+\beta-1}}{B(\alpha,
+  \beta)}\:\mathrm{d}\theta_i \nonumber\\
+  &= \frac{B(N-N_1+\alpha, N_1+\beta)}{B(\alpha, \beta)}
+\label{sbg:recursion-formula}
+\end{align}
 
-
-The numbers $N_t$ are observed, and we are interested in infering the values of the parameters $\vec{\theta} =
-\left\{\theta_i\right\}$, $\alpha$ and $\beta$. According to Bayes' theorem, for a single point in time:
-
-\begin{align*}
-  P\left(\vec{\theta}, \alpha, \beta | N_t \right) &\propto 
-  P\left(N_t | \vec{\theta}, \alpha, \beta \right) P(\vec{\theta} | \alpha, \beta)
-  P(\alpha, \beta)\\
-  & \propto \left[ \prod_{i=1}^{N} P\left(N_t | \theta_i, \alpha, \beta \right) P(\theta_i | \alpha, \beta)
-  \right]
-  P(\alpha, \beta)\\
-\end{align*}
-
-The $\theta_i$ are conditionally independant on $\alpha$ and $\beta$ so we can expand the likelihood and the
-prior on $\theta$ into a product of terms that only depend on $\theta_i$. Here, the values of $\theta_i$ are
-of little interest to us so we can integrate over all $\theta_i$:
-
-\begin{equation}
-  P(\alpha, \beta | N_t) \propto \left[ \prod_{i=1}^N \left(\int_0^1  S_i(t)
-  P(\theta_i | \alpha, \beta) \mathrm{d}\theta_i \right)
-  \right] P(\alpha, \beta)
-\end{equation}
-
-The integrals over $\theta_i$ are:
+The recursion is now obvious: it suffices to replace $N$ with $N_1$ and $N_1$ with $N_2$ to otbain
+$P(n_2=N_2|n_1=N_1, n_0=N)$. The probability to observe $
+\mathcal{D} = \left(n_0, n_1, \dots, n_t\right)$ if therefore:
 
 \begin{align*}
-  I_i &= \int_0^1 \left(1-\theta_i\right)^t \frac{\theta_i^{\alpha-1} \left(1-\theta_i\right)^{\beta-1}}{B(\alpha,
-  \beta)} \mathrm{d} \theta_i\\
-  &= \frac{B(\alpha, \beta+t)}{B(\alpha, \beta)}
+  P(\mathcal{D} | \alpha, \beta) &= P(n_1|n_0, \alpha, \beta) P(n_1|n_2, n_1, \alpha, \beta) \dots\\
+      &= \prod_{\tau=1}^t p(n_\tau|n_{\tau-1}, \alpha, \beta)
 \end{align*}
 
-Thus we have:
+Therefore, following Bayes theorem:
 
 \begin{equation}
-  P\left(\alpha, \beta | N_t\right) = \left[S_t(\alpha, \beta)\right]^N P(\alpha, \beta)
+  P(\alpha, \beta | \mathcal{D}) \propto \prod_{\tau=1}^t p(n_\tau|n_{\tau-1}, \alpha, \beta) P(\alpha, \beta)
 \end{equation}
 
   \subsection{Prediction}%
   \label{sub:prediction}
+
+Predict the number of individuals who will stay at ulterior periods for which we have no data. We only need to
+use the recursion formula~\ref{sbg:recursion-formula} after having infered the distributions of $\alpha$ and
+$\beta$. In practice, this means computing values recursively using the trace of $\alpha$ and $\beta$, which
+gives a set of values for each point in time.
+
   
   \subsection{Lifetime Value}%
   \label{sub:lifetime_value}
   
- 
+Knowing the churn rate $\theta_i$ of a user $i$ and the discount rate $d$ (which represents the `value of
+time')  one can compute their lifetime value as:
 
+\begin{equation}
+  LTV_i = \sum_{t=1}^\infty \frac{s_{it}}{\left(1+d\right)^t}
+\end{equation}
+
+Where $s_{it}$ is the random variable that is equal to $1$ if $i$ is present, $0$ otherwise. What we are interested in is the expected lifetime value of a user averaged over the possible values of
+$\theta_1$
+
+\begin{equation}
+  E\left[LTV_i\right] = \sum_{t=1}^\infty \frac{P(s_{it}=1|\theta_i)}{(1+d)^t}
+\end{equation}
+
+the total expected LTV is thus given by the integral over $\theta$ of the previous expression:
+
+\begin{align*}
+  E\left[LTV\right] &= \sum_{t=1}^\infty \left(\frac{1}{1+d}\right)^t \int_0^1 P(s_{it}=1 | \theta_i)
+  P(\theta_i|\mathcal{D}, \alpha, \beta)
+  \: \mathrm{d} \theta_i\\
+  & = \sum_{t=1}^\infty \left(\frac{1}{1+d}\right)^t \int_0^1 \left(1-\theta_i\right)^t P(\theta_i)
+  \mathrm{d}\theta_i
+\end{align*}
   
   \section{Retention and stickiness}% \label{sec:retention_and_stickiness}
   

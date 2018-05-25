@@ -460,8 +460,36 @@ the total expected LTV is thus given by the integral over $\theta$ of the previo
   \mathrm{d}\theta_i
 \end{align*}
   
-  \section{Retention and stickiness}% \label{sec:retention_and_stickiness}
-  
+\section{Retention and stickiness}
+\label{sec:retention_and_stickiness}
+
+\subsection{The Pareto/NBD model}
+\label{sub:the_pareto_nbd_model}
+
+\begin{itemize}
+\item The number of transactions $x$ made in active period of length
+  $t$ follows a Poisson distribution of mean $\lambda t$;
+\item Heterogeneity in parameter $\lambda$ across users follows a
+  gamma distibution of shape $r$ and scale $\alpha$;
+\item The lifetime $\tau$ follows an exponential distribution of
+  dropout rate $\mu$;
+\item The heterogeneity in parameter $\mu$ across users follows a
+  gamma distribution of shape $s$ and scale $\beta$.
+
+The original model also assumed independence between $\lambda$ and
+$\mu$. In our implementation we are going to use MCMC methods to
+sample directly from the joint distribution of $(r,\alpha,s,\beta)$
+
+The observed data are triplets $(x,t,T)$ where $x$ is the number of
+transactions, $t$ is the time of last transaction, and $T$ is the time
+of observation (times are relative to the start of activity).
+
+The likelihood in~\cite{Fader2005} has an error.
+
+In~\cite{Schmittlein1987} an explicit likelihood is derived.
+
+
+
   
   \section{Impact of new features on retention}
 

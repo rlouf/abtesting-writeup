@@ -312,6 +312,10 @@ The idea is that one should compare at every step the posterior Bayes risk of ma
 
 \chapter{Models}
 \label{chap:models}
+
+  \section{Defining what a session is}%
+  \label{sec:defining_what_a_session_is}
+  
   
   \section{Subscription retention and lifetime value}%
   \label{sec:churn_of_subscription_and_lifetime_value}
@@ -373,6 +377,14 @@ in~\cite{Gelman2014}:
   \alpha, \beta \sim \frac{1}{\left(\alpha+\beta\right)^{5/2}}
 \end{equation}
 
+The model is represented on Figure~\ref{fig:sbg}.
+
+\begin{marginfigure}
+  \centering
+  \includegraphics[width=\linewidth]{./figures/shifted_beta_geometric.pdf}
+  \caption{Graphical representation of the subscription churn model. The vector $\mathbf{x}$ stands for the
+  count data $[N, \dots, N_t]$.\label{fig:sbg}}
+\end{marginfigure}
 
 The number $n_t$ of users at an instant $t$ is given by
 
@@ -418,11 +430,18 @@ $P(n_2=N_2|n_1=N_1, n_0=N)$. The probability to observe $
       &= \prod_{\tau=1}^t p(n_\tau|n_{\tau-1}, \alpha, \beta)
 \end{align*}
 
+\begin{marginfigure}
+  \centering
+  \includegraphics[width=\linewidth]{./figures/shifted_beta_geometric_marginalized.pdf}
+  \caption{Marginalizing over $\theta$ gives the above graphical model. \label{fig:sbg}}
+\end{marginfigure}
+
 Therefore, following Bayes theorem:
 
 \begin{equation}
   P(\alpha, \beta | \mathcal{D}) \propto \prod_{\tau=1}^t p(n_\tau|n_{\tau-1}, \alpha, \beta) P(\alpha, \beta)
 \end{equation}
+
 
   \subsection{Prediction}%
   \label{sub:prediction}
@@ -587,7 +606,6 @@ Riemannian Monte Carlo~\cite{Betancourt2013}
 \backmatter
 
 \bibliographystyle{plainnat}
-
 
 \printindex
 

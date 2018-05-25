@@ -436,29 +436,61 @@ gives a set of values for each point in time.
   \subsection{Lifetime Value}%
   \label{sub:lifetime_value}
   
-Knowing the churn rate $\theta_i$ of a user $i$ and the discount rate $d$ (which represents the `value of
-time')  one can compute their lifetime value as:
+Knowing the churn rate $\theta_i$ of a user $i$, the discount rate $d$ (which represents the `value of
+time') and the price $m$ of the subscription, one can compute their lifetime value as:
 
 \begin{equation}
-  LTV_i = \sum_{t=1}^\infty \frac{s_{it}}{\left(1+d\right)^t}
+  LTV_i = m \sum_{t=0}^\infty \frac{s_{it}}{\left(1+d\right)^t}
 \end{equation}
 
 Where $s_{it}$ is the random variable that is equal to $1$ if $i$ is present, $0$ otherwise. What we are interested in is the expected lifetime value of a user averaged over the possible values of
 $\theta_1$
 
 \begin{equation}
-  E\left[LTV_i\right] = \sum_{t=1}^\infty \frac{P(s_{it}=1|\theta_i)}{(1+d)^t}
+  E\left[LTV_i\right] = m \sum_{t=0}^\infty \frac{P(s_{it}=1|\theta_i)}{(1+d)^t}
 \end{equation}
 
 the total expected LTV is thus given by the integral over $\theta$ of the previous expression:
 
 \begin{align*}
-  E\left[LTV\right] &= \sum_{t=1}^\infty \left(\frac{1}{1+d}\right)^t \int_0^1 P(s_{it}=1 | \theta_i)
+  E\left[LTV|\alpha, \beta\right] &= m \sum_{t=0}^\infty \left(\frac{1}{1+d}\right)^t \int_0^1 P(s_{it}=1 | \theta_i)
   P(\theta_i|\mathcal{D}, \alpha, \beta)
   \: \mathrm{d} \theta_i\\
-  & = \sum_{t=1}^\infty \left(\frac{1}{1+d}\right)^t \int_0^1 \left(1-\theta_i\right)^t P(\theta_i)
-  \mathrm{d}\theta_i
+  & = m \sum_{t=0}^\infty \left(\frac{1}{1+d}\right)^t \int_0^1 \left(1-\theta_i\right)^t P(\theta_i)
+  \mathrm{d}\theta_i\\
+  & = m \sum_{t=0}^\infty \left(\frac{1}{1+d}\right)^t \int_0^1 \frac{\left(1-\theta_i\right)^{\beta+t-1}
+  \theta_i^{\alpha-1} }{B(\alpha, \beta)}\mathrm{d}\theta_i\\
+  & = m \sum_{t=0}^\infty \left(\frac{1}{1+d}\right)^t \frac{Beta(\alpha, \beta+t) }{B(\alpha, \beta)}
 \end{align*}
+
+Using properties of the Beta and Gamma functions we have:
+
+\begin{align*}
+  \frac{Beta(\alpha, \beta+t)}{Beta(\alpha, \beta)} &=
+  \frac{\Gamma(\alpha)\Gamma(\beta+t)\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)\Gamma(\alpha+\beta+t)}\\
+  &= \frac{\Gamma(\alpha+\beta)}{\Gamma(\beta)}
+  \frac{(\beta+t-1)\dots\beta\:\Gamma(\beta)}{(\beta+\alpha+t-1)\dots(\alpha+\beta)\:\Gamma(\alpha+\beta)}\\
+  &= \frac{(\beta+t-1)\dots\beta}{(\beta+\alpha+t-1)\dots(\alpha+\beta)}
+\end{align*}
+
+Using the Pochammer symbol notations $(\beta)_t = \beta \dots (\beta+t-1)$ and $(\alpha+\beta)_t =
+(\alpha+\beta) \dots (
+\alpha+\beta+t-1)$ we can write:
+
+\begin{align*}
+  E\left[LTV|\alpha, \beta\right] = m \sum_{t=0}^{\infty} \frac{(\beta)_t}{\left(\alpha+\beta\right)_t}
+  \left(\frac{1}{1+d}\right)^t
+\end{align*}
+
+We use the trick $(1)_t = t!$ to write the expression in terms of the hypergeometric function:
+
+$$
+E\left[LTV | \alpha, \beta\right] = m \quad _2F_1(1; \beta; \alpha+\beta; 1/(1+d))
+$$
+
+\subsection{Using past data to infer recent LTV}
+
+The issue when computing quantities such as lifetime value
   
 \section{Retention and stickiness}
 \label{sec:retention_and_stickiness}

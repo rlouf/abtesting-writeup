@@ -516,34 +516,89 @@ The issue when computing quantities such as lifetime value
 
 \subsection{The Pareto/NBD model}
 \label{sub:the_pareto_nbd_model}
+In a non-contractual setting, the state of an user (churned or active)
+cannot be observed. All the observations are related to \emph{past
+  activities} of the user. From the observations of the time of past
+activities, we need to estimate a probability of being active so that
+we can project future retention.
 
+The Pareto/NBB model is based on the following assumptions:
 \begin{itemize}
-\item The number of transactions $x$ made in active period of length
+\item The number of activities $x$ made in active period of length
   $t$ follows a Poisson distribution of mean $\lambda t$;
 \item Heterogeneity in parameter $\lambda$ across users follows a
   gamma distibution of shape $r$ and scale $\alpha$;
 \item The lifetime $\tau$ follows an exponential distribution of
   dropout rate $\mu$;
 \item The heterogeneity in parameter $\mu$ across users follows a
-  gamma distribution of shape $s$ and scale $\beta$.
+  gamma distribution of shape $s$ and scale $\beta$;
+\item $\lambda$ and $\mu$ are independent.
 \end{itemize}
 
-The original model also assumed independence between $\lambda$ and
-$\mu$. In our implementation we are going to use MCMC methods to
-sample directly from the joint distribution of $(r,\alpha,s,\beta)$
+So formally:
+\begin{align*}
+x & \sim \frac{\lambda^x t^x e^{-\lambda t}}{x !} \\
+\tau & \sim \mu e^{-\mu \tau} \\
+\lambda & \sim Gamma(r,\alpha) \\
+\mu & \sim Gamma(s, \beta)
+\end{align*}
 
-The observed data are triplets $(x,t,T)$ where $x$ is the number of
-transactions, $t$ is the time of last transaction, and $T$ is the time
-of observation (times are relative to the start of activity).
+We are going to use MCMC methods to estimate the parameters $r,\alpha,
+s, \beta$.
 
-The likelihood in~\cite{Fader2005} has an error.
+\subsection{Likelihood of the Pareto/NBD}
+\label{sub:likelihood_of_the_pareto_nbd}
 
-In~\cite{Schmittlein1987} an explicit likelihood is derived.
+The number $x$ of events occuring in time $T$ follows a Poisson
+distribution of rate $\lambda T$ iff the intervent times are
+\emph{i.i.d.}  variables following an exponential distribution of rate
+$\lambda$. That is to say the events times $0=t_0 < t_1 < \ldots < t_x
+<T$ are such that:
+$$t_i - t_{i-1} \sim \lambda e^{-\lambda (t_i - t_{i-1})} \qquad
+i=1,\ldots,x $$
+
+It is known (and easy to calculate) that the distribution of $t_x$,
+the sum of $x$ exponentially distributed intervent times, is:
+\begin{align*}
+  t_x \sim \frac{\lambda^x t_x^{x-1} e^{-\lambda t_x}}{(x-1)!}
+\end{align*}
+
+
+Observing $x,t_x, T$ lets us with two possibilities: either the user
+is still active at time $T$ with no events between $t_x$ and $T$ (with
+probability $e^{-\lambda (T-t_x)} e^{-\mu T}$), or he has stopped
+being active at time $\tau \in \left] t_x, T \right]$ with no event
+    between $t_x$ and $\tau$. That is to say:
+\begin{align*}
+  P(x,t_x,T \ |\ \lambda, \mu) & = \frac{\lambda^x t_x^{x-1}
+    e^{-(\lambda + \mu) T}}{(x-1)!} + \int_{t_x}^T \frac{\lambda^x
+    t_x^{x-1} e^{-\lambda\tau}}{(x-1)!} \mu e^{-\mu \tau}
+  \mathrm{d}\tau \\ & = \frac{\lambda^x t_x^{x-1} e^{-(\lambda + \mu)
+      T}}{(x-1)!}  + \frac{\mu\lambda^x t_x^{x-1} \left(
+    e^{-(\lambda+\mu)t_x} -e^{-(\lambda+\mu)T}\right)}{(\lambda + \mu)
+    \times(x-1)!}\\ & = \frac{\lambda^x t_x^{x-1} \left( \lambda
+    e^{-(\lambda+\mu)T}+ \mu e^{-(\lambda+\mu)t_x} \right)}{(\lambda +
+    \mu) \times(x-1)!}
+\end{align*}
+
+In~\cite{Schmittlein1987} an explicit likelihood of $x,t_x,T$
+depending on $r,\alpha, s, \beta$ (where $\lambda$ and $\mu$ are
+marginalised) is derived. However this expression is complex and
+doesn't allow for explicit differentiation.
+
+(The likelihood in~\cite{Fader2005} has an error)
+
+\subsection{Prediction}
+\label{sub:prediction_pareto_nbd}
+
+
+
+
 
 
 
   
-  \section{Impact of new features on retention}
+\section{Impact of new features on retention}
 
 The impact of new features on retention is not something that is obvious to
 measure. When one performs a naive A/B test, where one variant contains the

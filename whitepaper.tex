@@ -557,8 +557,8 @@ $\lambda$. That is to say the events times $0=t_0 < t_1 < \ldots < t_x
 $$t_i - t_{i-1} \sim \lambda e^{-\lambda (t_i - t_{i-1})} \qquad
 i=1,\ldots,x $$
 
-It is known (and easy to calculate) that the distribution of $t_x$,
-the sum of $x$ exponentially distributed intervent times, is:
+It is known that the distribution of $t_x$, the sum of $x$
+exponentially distributed intervent times, is:
 \begin{align*}
   t_x \sim \frac{\lambda^x t_x^{x-1} e^{-\lambda t_x}}{(x-1)!}
 \end{align*}
@@ -568,7 +568,7 @@ Observing $x,t_x, T$ lets us with two possibilities: either the user
 is still active at time $T$ with no events between $t_x$ and $T$ (with
 probability $e^{-\lambda (T-t_x)} e^{-\mu T}$), or he has stopped
 being active at time $\tau \in \left] t_x, T \right]$ with no event
-    between $t_x$ and $\tau$. That is to say:
+between $t_x$ and $\tau$. That is to say (for $x\ne 0$):
 \begin{align*}
   P(x,t_x,T \ |\ \lambda, \mu) & = \frac{\lambda^x t_x^{x-1}
     e^{-(\lambda + \mu) T}}{(x-1)!} + \int_{t_x}^T \frac{\lambda^x
@@ -580,18 +580,37 @@ being active at time $\tau \in \left] t_x, T \right]$ with no event
     e^{-(\lambda+\mu)T}+ \mu e^{-(\lambda+\mu)t_x} \right)}{(\lambda +
     \mu) \times(x-1)!}
 \end{align*}
+And observing $(0,0,T)$ happens either when the user is still active at
+time $T$ with no events within $T$ (with probability
+$e^{-\lambda T} e^{-\mu T}$), or he has stopped being active at
+time $\tau \in \left ] 0, T \right]$ with no event between $t_x$ and
+$\tau$; that is to say:
+\begin{align*}
+  P(0,0,T \ |\ \lambda, \mu)
+  & =  e^{-(\lambda + \mu) T}  + \int_{0}^T  e^{-\lambda\tau}    \mu e^{-\mu \tau}
+    \mathrm{d}\tau \\
+  & =
+    \left(1 + \frac{\mu}{\lambda + \mu}\right)
+    e^{-(\lambda + \mu) T}
+\end{align*}
 
 In~\cite{Schmittlein1987} an explicit likelihood of $x,t_x,T$
 depending on $r,\alpha, s, \beta$ (where $\lambda$ and $\mu$ are
 marginalised) is derived. However this expression is complex and
-doesn't allow for explicit differentiation.
+doesn't allow for explicit differentiation, preventing us from using
+NUTS sampler. However the independence assumed between $\lambda$ and
+$\mu$ makes variational inference suitable.
 
 (The likelihood in~\cite{Fader2005} has an error)
 
 \subsection{Prediction}
 \label{sub:prediction_pareto_nbd}
 
+\paragraph{Probability of being alive at $T$}
+\label{subsub:proabilityofbeingalive}
 
+\paragraph{Expected activites in interval $[T, T+t]$}
+\label{subsub:expectedactivtiesin interval}
 
 
 

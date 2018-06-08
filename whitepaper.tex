@@ -522,7 +522,7 @@ cannot be observed. All the observations are related to \emph{past
 activities, we need to estimate a probability of being active so that
 we can project future retention.
 
-The Pareto/NBB model is based on the following assumptions:
+The Pareto/NBD model is based on the following assumptions:
 \begin{itemize}
 \item The number of activities $x$ made in active period of length
   $t$ follows a Poisson distribution of mean $\lambda t$;
@@ -543,8 +543,8 @@ x & \sim \frac{\lambda^x t^x e^{-\lambda t}}{x !} \\
 \mu & \sim Gamma(s, \beta)
 \end{align*}
 
-We are going to use MCMC methods to estimate the parameters $r,\alpha,
-s, \beta$.
+We are going to use variational inference methods to estimate the
+parameters $r,\alpha, s, \beta$.
 
 \subsection{Likelihood of the Pareto/NBD}
 \label{sub:likelihood_of_the_pareto_nbd}
@@ -564,11 +564,15 @@ exponentially distributed intervent times, is:
 \end{align*}
 
 
-Observing $x,t_x, T$ lets us with two possibilities: either the user
-is still active at time $T$ with no events between $t_x$ and $T$ (with
-probability $e^{-\lambda (T-t_x)} e^{-\mu T}$), or he has stopped
-being active at time $\tau \in \left] t_x, T \right]$ with no event
-between $t_x$ and $\tau$. That is to say (for $x\ne 0$):
+Observing $x,t_x, T$ leaves us with two possibilities:
+\begin{itemize}
+\item the user is still active at time $T$ with no events between
+  $t_x$ and $T$ (with probability $e^{-\lambda (T-t_x)} e^{-\mu T}$);
+\item he has stopped being active at time
+  $\tau \in \left] t_x, T \right]$ with no event between $t_x$ and
+  $\tau$.
+\end{itemize}
+That is to say (for $x\ne 0$):
 \begin{align*}
   P(x,t_x,T \ |\ \lambda, \mu) & = \frac{\lambda^x t_x^{x-1}
     e^{-(\lambda + \mu) T}}{(x-1)!} + \int_{t_x}^T \frac{\lambda^x
@@ -596,23 +600,49 @@ $\tau$; that is to say:
 
 In~\cite{Schmittlein1987} an explicit likelihood of $x,t_x,T$
 depending on $r,\alpha, s, \beta$ (where $\lambda$ and $\mu$ are
-marginalised) is derived. However this expression is complex and
-doesn't allow for explicit differentiation, preventing us from using
-NUTS sampler. However the independence assumed between $\lambda$ and
-$\mu$ makes variational inference suitable.
+marginalised) is derived.\sidenote{It seems the likelihood derived
+  in~\cite{Fader2005} contains an error.} However this expression is
+complex and doesn't allow for explicit differentiation, preventing us
+from using NUTS sampler. However the independence assumed between
+$\lambda$ and $\mu$ makes variational inference suitable.
 
-(The likelihood in~\cite{Fader2005} has an error)
 
 \subsection{Prediction}
 \label{sub:prediction_pareto_nbd}
 
-\paragraph{Probability of being alive at $T$}
-\label{subsub:proabilityofbeingalive}
+From the technical annex to~\cite{Abe2009}, we give a couple of
+predictive probabilities which can be used for model-checking and
+retention projection.
 
-\paragraph{Expected activites in interval $[T, T+t]$}
-\label{subsub:expectedactivtiesin interval}
+\paragraph{Survival probability}
+\label{par:survivalprobability}
+
+\begin{align*}
+  P(\tau > T \ | \ \lambda, \mu, x, t_x, T)
+  & = \frac{P(x, t_x, T \ | \ \lambda, \mu, \tau>T) P(\tau>T)}{
+    P(x, t_x, T\ |\ \lambda, \mu)}\\
+  & = \frac{1}{1+\frac{\mu}{\lambda+\mu}\left(
+    e^{(\lambda+\mu)(T-t_x)}-1\right)}
+\end{align*}
 
 
+\paragraph{Expected activites in future period}
+\label{par:expectedactivtiesinperiod0t}
+
+Let $X(t_1, t_2)$ be the number of activities in the period $[t_1,t_2]$ for a
+given user; then:
+\begin{align*}
+  E[X(0,t)\ |\ \lambda, \mu]
+  & = \int_0^t \lambda\tau\mu e^{-\mu \tau} \mathrm{d}\tau
+    + \lambda t e^{-\mu t} \\
+  & = \frac{\lambda}{\mu} \left(e^{-\mu t} - 1\right)
+\end{align*}
+So, writing $\boldsymbol\theta = x, t_x, T, \lambda, \mu$, we get:
+\begin{align*}
+  E[X(T,T+t) \ | \ \boldsymbol\theta]
+  & = E[X(0,t)\ | \ \lambda,\mu]
+    P(\tau >T \ | \ \boldsymbol\theta)
+\end{align*}
 
 
 

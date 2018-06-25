@@ -562,7 +562,7 @@ exponentially distributed intervent times, is:
 \begin{align*}
   t_x \sim \frac{\lambda^x t_x^{x-1} e^{-\lambda t_x}}{(x-1)!}
 \end{align*}
-
+where $t_x$ is the sum of intervent times.
 
 Observing $x,t_x, T$ leaves us with two possibilities:
 \begin{itemize}
@@ -574,28 +574,30 @@ Observing $x,t_x, T$ leaves us with two possibilities:
 \end{itemize}
 That is to say (for $x\ne 0$):
 \begin{align*}
-  P(x,t_x,T \ |\ \lambda, \mu) & = \frac{\lambda^x t_x^{x-1}
+  P(x,t_x,T \ |\ \lambda, \mu)
+  & = \frac{\lambda^x t_x^{x-1}
     e^{-(\lambda + \mu) T}}{(x-1)!} + \int_{t_x}^T \frac{\lambda^x
     t_x^{x-1} e^{-\lambda\tau}}{(x-1)!} \mu e^{-\mu \tau}
-  \mathrm{d}\tau \\ & = \frac{\lambda^x t_x^{x-1} e^{-(\lambda + \mu)
-      T}}{(x-1)!}  + \frac{\mu\lambda^x t_x^{x-1} \left(
+    \mathrm{d}\tau \\
+  & = \frac{\lambda^x t_x^{x-1} e^{-(\lambda + \mu)
+    T}}{(x-1)!}  + \frac{\mu\lambda^x t_x^{x-1} \left(
     e^{-(\lambda+\mu)t_x} -e^{-(\lambda+\mu)T}\right)}{(\lambda + \mu)
-    \times(x-1)!}\\ & = \frac{\lambda^x t_x^{x-1} \left( \lambda
-    e^{-(\lambda+\mu)T}+ \mu e^{-(\lambda+\mu)t_x} \right)}{(\lambda +
-    \mu) \times(x-1)!}
+    \times(x-1)!}\\
+  & = \frac{\lambda^x t_x^{x-1}}{(x-1)!} \times
+    \frac{ \left( \lambda
+    e^{-(\lambda+\mu)T}+ \mu e^{-(\lambda+\mu)t_x} \right)}{\lambda + \mu}
 \end{align*}
 And observing $(0,0,T)$ happens either when the user is still active at
 time $T$ with no events within $T$ (with probability
 $e^{-\lambda T} e^{-\mu T}$), or he has stopped being active at
-time $\tau \in \left ] 0, T \right]$ with no event between $t_x$ and
+time $\tau \in \left ] 0, T \right]$ with no event between $0$ and
 $\tau$; that is to say:
 \begin{align*}
   P(0,0,T \ |\ \lambda, \mu)
   & =  e^{-(\lambda + \mu) T}  + \int_{0}^T  e^{-\lambda\tau}    \mu e^{-\mu \tau}
     \mathrm{d}\tau \\
-  & =
-    \left(1 + \frac{\mu}{\lambda + \mu}\right)
-    e^{-(\lambda + \mu) T}
+  & =  e^{-(\lambda + \mu) T} + \frac{\mu - \mu e^{-(\lambda+\mu)T}}{\lambda+\mu} \\
+  & = \frac{\lambda e^{-(\lambda+\mu)T} + \mu}{\lambda + \mu}    
 \end{align*}
 
 In~\cite{Schmittlein1987} an explicit likelihood of $x,t_x,T$
@@ -614,39 +616,111 @@ From the technical annex to~\cite{Abe2009}, we give a couple of
 predictive probabilities which can be used for model-checking and
 retention projection.
 
-\paragraph{Survival probability}
-\label{par:survivalprobability}
-
+\paragraph{Lifetime and survival distribution}
+\label{par:lifetimeandsurvivaldistribution}
+Reminding that:
 \begin{align*}
-  P(\tau > T \ | \ \lambda, \mu, x, t_x, T)
-  & = \frac{P(x, t_x, T \ | \ \lambda, \mu, \tau>T) P(\tau>T)}{
-    P(x, t_x, T\ |\ \lambda, \mu)}\\
-  & = \frac{1}{1+\frac{\mu}{\lambda+\mu}\left(
-    e^{(\lambda+\mu)(T-t_x)}-1\right)}
+  P(x, t_x, T, \tau\ | \ \lambda, \mu)
+  & = \left\{
+    \begin{array}{ll}
+      \frac{\lambda^x t_x^{x-1}}{(x-1)!} \mu e^{-\lambda \textrm{min}(T,\tau)} e^{-\mu \tau}
+      & \text{if } x \ne 0\\
+       \mu e^{-\lambda \textrm{min}(T,\tau)} e^{-\mu \tau}
+      & \text{if } x = 0      
+    \end{array}
+    \right.
+\end{align*}
+by Bayes' rule, the lifetime $\tau \in ]t_x, \infty[$ has
+probability mass function:
+\begin{align*}
+  P(\tau\ | \ x, t_x, T, \lambda, \mu)
+  & = \frac{P(x, t_x, T, \tau\ | \ \lambda, \mu)}{
+    P(x,t_x,T\ |\ \lambda, \mu) } \\
+  & = \left\{
+    \begin{array}{ll}
+      \frac{\lambda + \mu}{ \left( \lambda
+      e^{-(\lambda+\mu)T}+ \mu e^{-(\lambda+\mu)t_x} \right)}
+       \mu e^{-\lambda\tau} e^{-\mu \tau}
+      & \text{if } \tau \le T \\
+      \frac{\lambda + \mu}{ \left( \lambda
+      e^{-(\lambda+\mu)T}+ \mu e^{-(\lambda+\mu)t_x} \right)}
+      \mu e^{-\lambda T} e^{ - \mu \tau}
+      & \text{if } \tau > T
+    \end{array}
+    \right.
 \end{align*}
 
+We can now obtain the survival probability at time $T'$ by summing the
+previous expression:
+\begin{align*}
+  P(\tau > T' \ | \ \lambda, \mu, x, t_x, T)
+  & = \int_{T'}^\infty P(\tau\ | \ x, t_x, T, \lambda, \mu) \mathrm{d}\tau\\
+  & = \left\{
+    \begin{array}{ll}
+      \frac{(\lambda + \mu)e^{\mu(T-T')}}{
+      \lambda + \mu e^{(\lambda+\mu)(T-t_x)}}
+      & \text{if } T' > T \\
+      \frac{\lambda + \mu e^{(\lambda +\mu)(T-T')}}{
+      \lambda + \mu e^{(\lambda+\mu)(T-t_x)}}
+      & \text{if } t_x < T' \le T
+    \end{array}
+    \right.
+\end{align*}
+
+In particular, the survival probability at time of observation is, as
+given in~\cite{Abe2009}:
+\begin{align*}
+  P(\tau > T\ |\ \lambda, \mu, x, t_x, T)
+  & =  \frac{\lambda + \mu}{
+    \lambda + \mu e^{(\lambda+\mu)(T-t_x)}}
+\end{align*}
+and also that, as expected from an exponential law:
+\begin{align*}
+  P(T+t \ |\ \lambda, \mu, x, t_x, T)
+  & = \mu e^{-\mu t}   P(\tau > T \ |\ \lambda, \mu, x, t_x, T) \\
+  P(\tau > T+t \ |\ \lambda, \mu, x, t_x, T)
+  & = e^{-\mu t}   P(\tau > T \ |\ \lambda, \mu, x, t_x, T)
+\end{align*}
 
 \paragraph{Expected activites in future period}
-\label{par:expectedactivtiesinperiod0t}
-
-Let $X(t_1, t_2)$ be the number of activities in the period $[t_1,t_2]$ for a
-given user; then:
+\label{par:expectedactivtiesinperiod}
+Let's write $X(T, T+t)$ the number of activities in period
+$[T,T+t]$. We know that when $\tau > T$, the mean number of activities
+in that period is:
 \begin{align*}
-  E[X(0,t)\ |\ \lambda, \mu]
-  & = \int_0^t \lambda\tau\mu e^{-\mu \tau} \mathrm{d}\tau
-    + \lambda t e^{-\mu t} \\
-  & = \frac{\lambda}{\mu} \left(e^{-\mu t} - 1\right)
+  E[X(T,T+t)\ |\ \lambda, \tau]
+  & = \lambda \mathrm{min}(t, \tau -T)
 \end{align*}
+and is obvisouly $0$ when $\tau \le T$.
+
 So, writing $\boldsymbol\theta = x, t_x, T, \lambda, \mu$, we get:
 \begin{align*}
-  E[X(T,T+t) \ | \ \boldsymbol\theta]
-  & = E[X(0,t)\ | \ \lambda,\mu]
-    P(\tau >T \ | \ \boldsymbol\theta)
+  E[X(T,T+t)\ |\ \boldsymbol\theta]
+  & = \int_T^{T+t} \lambda (\tau -T) p(\tau\ |\ \boldsymbol\theta) \mathrm{d}\tau +
+    \lambda t P(\tau > T+t\ |\ \boldsymbol\theta) 
+\end{align*}
+where:
+\begin{align*}
+  \lambda t P(\tau > T+t\ |\ \boldsymbol\theta)
+  & =  \lambda t e^{-\mu t} P(\tau > T\ |\ \boldsymbol\theta)
+\end{align*}
+and:
+\begin{align*}
+  \int_T^{T+t} \lambda (\tau -T) p(\tau\ |\ \boldsymbol\theta) \mathrm{d}\tau 
+  & = P(\tau' >T \ |\ \boldsymbol \theta) \int_0^t \lambda \tau \mu e^{-\mu \tau}  \mathrm{d} \tau\\
+  & = P(\tau' >T \ |\ \boldsymbol \theta) \left( \int_0^t \lambda e^{-\mu \tau} \mathrm{d}\tau
+    -\lambda t e^{-\mu t} \right) \\
+  & = P(\tau' >T \ |\ \boldsymbol \theta) \left( \frac{\lambda}{\mu} - \frac{\lambda e^{-\mu t}}{\mu}
+    -\lambda t e^{-\mu t} \right)
+\end{align*}
+leading to:
+\begin{align*}
+  E[X(T,T+t)\ |\ \boldsymbol\theta]
+  & =  \frac{\lambda}{\mu} \left(
+    1 -  e^{-\mu t} \right) P(\tau>T\ |\ \boldsymbol \theta)
 \end{align*}
 
 
-
-  
 \section{Impact of new features on retention}
 
 The impact of new features on retention is not something that is obvious to
